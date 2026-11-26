@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>কাপড়ের হিসাব — কত গজ কাপড় লাগবে</title>
+<style>
+  :root{
+    --bg:#f7f2e7; --card:#fffdf6; --brick:#9e3a2e; --brick-dark:#7e2c22;
+    --ink:#2b2118; --muted:#7a6a58; --line:#e5d9c3; --chip:#f3ead6;
+    --chip-on:#9e3a2e; --radius:12px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:"Hind Siliguri","Noto Sans Bengali","SolaimanLipi",system-ui,sans-serif;
+    background:var(--bg); color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:860px; margin:0 auto; padding:14px 12px 22px;}
+  header{display:flex; align-items:center; gap:10px; padding:4px 2px 12px;}
+  header .logo{
+    width:40px; height:40px; flex:0 0 40px; border-radius:10px;
+    background:var(--brick); display:flex; align-items:center; justify-content:center;
+  }
+  header h1{font-size:22px; line-height:1.15; color:var(--brick-dark);}
+  header p{font-size:13px; color:var(--muted); margin-top:1px;}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:12px; margin-bottom:10px;
+  }
+  .card h2{font-size:14px; color:var(--brick-dark); margin-bottom:8px; font-weight:700;}
+  .grid{display:grid; gap:7px;}
+  .grid-garment{grid-template-columns:repeat(2,1fr);}
+  .grid-size{grid-template-columns:repeat(2,1fr);}
+  .grid-width{grid-template-columns:repeat(3,1fr);}
+  @media (min-width:700px){
+    .grid-garment{grid-template-columns:repeat(4,1fr);}
+    .grid-size{grid-template-columns:repeat(4,1fr);}
+    header h1{font-size:26px;}
+  }
+  button.chip{
+    font:inherit; font-size:14px; line-height:1.25; cursor:pointer;
+    background:var(--chip); color:var(--ink);
+    border:1.5px solid transparent; border-radius:9px;
+    padding:8px 6px; text-align:center; min-height:40px;
+  }
+  button.chip small{display:block; font-size:11px; color:var(--muted); margin-top:1px;}
+  button.chip.on{background:var(--chip-on); color:#fff; border-color:var(--brick-dark);}
+  button.chip.on small{color:#f3d9d2;}
+  button.chip:active{transform:scale(.98);}
+  .rowline{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .stepper{display:flex; align-items:center; gap:8px;}
+  .stepper button{
+    font:inherit; width:36px; height:36px; border-radius:9px; cursor:pointer;
+    background:var(--chip); border:1.5px solid var(--line); font-size:18px; color:var(--brick-dark);
+  }
+  .stepper .val{min-width:86px; text-align:center; font-size:14px; font-weight:600;}
+  .hint{font-size:12px; color:var(--muted);}
+  .price-row{display:flex; align-items:center; gap:8px;}
+  .price-row label{font-size:14px; font-weight:600; color:var(--brick-dark); white-space:nowrap;}
+  .price-row input{
+    font:inherit; font-size:15px; width:130px; padding:7px 9px;
+    border:1.5px solid var(--line); border-radius:9px; background:#fff; color:var(--ink);
+  }
+  .price-row input:focus{outline:2px solid var(--brick); outline-offset:0; border-color:var(--brick);}
+  .result{
+    background:var(--brick); color:#fff; border-radius:var(--radius);
+    padding:16px 14px; text-align:center; margin-bottom:10px;
+  }
+  .result .cap{font-size:13px; opacity:.85;}
+  .result .big{font-size:34px; font-weight:800; line-height:1.2; margin:3px 0;}
+  .result .sub{font-size:13.5px; opacity:.92;}
+  .result .parts{
+    margin-top:10px; padding-top:9px; border-top:1px solid rgba(255,255,255,.35);
+    font-size:14px; line-height:1.65; text-align:left;
+  }
+  .result .parts b{font-weight:700;}
+  .result .cost{margin-top:9px; font-size:19px; font-weight:800;}
+  footer{font-size:12px; color:var(--muted); text-align:center; padding:2px 8px 0; line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect x="2.5" y="8" width="19" height="8" rx="1.5" fill="#f7f2e7"/>
+        <path d="M6 8v4M10 8v3M14 8v4M18 8v3" stroke="#9e3a2e" stroke-width="1.6"/>
+      </svg>
+    </div>
+    <div>
+      <h1>কাপড়ের হিসাব</h1>
+      <p>পোশাক আর বহর বাছলেই — কত গজ কাপড় লাগবে</p>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>১. পোশাক / জিনিস বাছুন</h2>
+    <div class="grid grid-garment" id="garments"></div>
+  </div>
+
+  <div class="card">
+    <h2>২. সাইজ বাছুন</h2>
+    <div class="grid grid-size" id="sizes"></div>
+  </div>
+
+  <div class="card">
+    <h2>৩. কাপড়ের বহর (দোকানে যেভাবে বিক্রি হয়)</h2>
+    <div class="grid grid-width" id="widths"></div>
+  </div>
+
+  <div class="card" id="adjCard">
+    <h2>৪. লম্বা কম-বেশি? (ঐচ্ছিক)</h2>
+    <div class="rowline">
+      <div class="stepper">
+        <button type="button" id="adjMinus" aria-label="লম্বা কমান">−</button>
+        <div class="val" id="adjVal">স্বাভাবিক</div>
+        <button type="button" id="adjPlus" aria-label="লম্বা বাড়ান">+</button>
+      </div>
+      <span class="hint">লম্বা ১ ইঞ্চি বাড়ালে কাপড় লাগে প্রায় ২ ইঞ্চি বেশি (সামনে + পেছনে)।</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="price-row">
+      <label for="price">গজের দাম (ঐচ্ছিক)</label>
+      <input id="price" type="number" inputmode="decimal" min="0" placeholder="টাকা / গজ">
+    </div>
+  </div>
+
+  <div class="result" id="result" aria-live="polite"></div>
+
+  <footer>
+    হিসাব প্রচলিত দর্জি-মাপ অনুযায়ী, নিকটতম গিরায় বাড়িয়ে ধরা হয়েছে (১ গজ = ৩৬ ইঞ্চি, ১ গিরা = ২.২৫ ইঞ্চি)।<br>
+    ছাপ বা চেক কাপড়ে নকশা মেলাতে হলে দর্জি কিছুটা বেশি চাইতে পারেন।
+  </footer>
+</div>
+
+<script>
+"use strict";
+var BN = "০১২৩৪৫৬৭৮৯";
+function bn(x){
+  return String(x).replace(/[0-9]/g, function(d){ return BN[+d]; });
+}
+function fmtNum(x){ // up to 2 decimals, trimmed
+  var s = (Math.round(x*100)/100).toString();
+  return bn(s);
+}
+/* Widths as sold in BD shops. usable = width minus selvedge/shrinkage (~2"). */
+var WIDTHS = [
+  { id:"w2",  label:"২ হাত",   inch:36, usable:34 },
+  { id:"w25", label:"২.৫ হাত", inch:45, usable:43 },
+  { id:"w3",  label:"৩ হাত",   inch:54, usable:52 }
+];
+/* Yardage model:
+   - Worn garments: base = required length (inches) on 2.5-hat (45") fabric,
+     from standard tailor charts. Narrow/wide widths scale by cutting layout:
+     narrower cloth wastes more length (pieces stack), wider cloth saves some.
+   - Salwar-kameez: components computed and rounded separately (shops cut each apart).
+     Orna length is fixed 90" (2.5 goj) at any width.
+   - Curtain / bedsheet: true panel maths from finished size and usable width. */
+var GARMENTS = [
+  { id:"panjabi", name:"পাঞ্জাবি", type:"wear", narrow:1.35, wide:0.85,
+    sizes:[ {t:"S", s:"বুক ৩৮ ইঞ্চি", base:84}, {t:"M", s:"বুক ৪০–৪২ ইঞ্চি", base:90},
+            {t:"L", s:"বুক ৪৪ ইঞ্চি", base:96}, {t:"XL", s:"বুক ৪৬+ ইঞ্চি", base:102} ] },
+  { id:"fatua", name:"ফতুয়া", type:"wear", narrow:1.35, wide:0.85,
+    sizes:[ {t:"S", s:"বুক ৩৮ ইঞ্চি", base:72}, {t:"M", s:"বুক ৪০–৪২ ইঞ্চি", base:78},
+            {t:"L", s:"বুক ৪৪ ইঞ্চি", base:84}, {t:"XL", s:"বুক ৪৬+ ইঞ্চি", base:90} ] },
+  { id:"borka", name:"বোরকা", type:"wear", narrow:1.40, wide:0.88,
+    sizes:[ {t:"S", s:"লম্বা ৫২ ইঞ্চি", base:120}, {t:"M", s:"লম্বা ৫৪ ইঞ্চি", base:126},
+            {t:"L", s:"লম্বা ৫৬ ইঞ্চি", base:134}, {t:"XL", s:"লম্বা ৫৮ ইঞ্চি", base:142} ] },
+  { id:"salwar", name:"সালোয়ার-কামিজ", type:"three",
+    kn:1.35, kw:0.85, sn:1.20, sw:0.90, orna:90,
+    sizes:[ {t:"S", k:80, sl:76}, {t:"M", k:86, sl:80}, {t:"L", k:92, sl:84}, {t:"XL", k:98, sl:88} ] },
+  { id:"frock", name:"বাচ্চাদের ফ্রক/জামা", type:"wear", narrow:1.25, wide:0.85,
+    sizes:[ {t:"১–২ বছর", base:40}, {t:"৩–৪ বছর", base:48}, {t:"৫–৬ বছর", base:56},
+            {t:"৭–৮ বছর", base:64}, {t:"৯–১০ বছর", base:74}, {t:"১১–১২ বছর", base:84} ] },
+  { id:"school", name:"স্কুল ড্রেস", sub:"শার্ট + প্যান্ট", type:"wear", narrow:1.30, wide:0.88,
+    sizes:[ {t:"৬–৮ বছর", base:64}, {t:"৯–১১ বছর", base:76},
+            {t:"১২–১৪ বছর", base:88}, {t:"১৫–১৬ বছর", base:100} ] },
+  { id:"curtain", name:"পর্দা", type:"curtain",
+    sizes:[ {t:"ছোট জানালা", s:"৩ × ৪ ফুট", w:36, h:48}, {t:"বড় জানালা", s:"৪ × ৫ ফুট", w:48, h:60},
+            {t:"দরজা", s:"৩ × ৭ ফুট", w:36, h:84}, {t:"বড় দরজা/জানালা", s:"৫ × ৬ ফুট", w:60, h:72} ] },
+  { id:"sheet", name:"বিছানার চাদর", type:"sheet",
+    sizes:[ {t:"সিঙ্গেল", s:"খাট ৩ × ৬.৫ ফুট", bw:36, bl:78}, {t:"ডাবল", s:"খাট ৫ × ৬.৫ ফুট", bw:60, bl:78},
+            {t:"কুইন", s:"খাট ৫ × ৭ ফুট", bw:60, bl:84}, {t:"কিং", s:"খাট ৬ × ৭ ফুট", bw:72, bl:84} ] }
+];
+
+var state = { g:"panjabi", size:1, w:"w25", adj:0 };
+
+function widthObj(){ for (var i=0;i<WIDTHS.length;i++) if (WIDTHS[i].id===state.w) return WIDTHS[i]; }
+function garmentObj(){ for (var i=0;i<GARMENTS.length;i++) if (GARMENTS[i].id===state.g) return GARMENTS[i]; }
+function mult(g, kind){
+  if (state.w==="w25") return 1;
+  if (kind==="kameez") return state.w==="w2" ? g.kn : g.kw;
+  if (kind==="salwar") return state.w==="w2" ? g.sn : g.sw;
+  return state.w==="w2" ? g.narrow : g.wide;
+}
+function toGira(inches){ return Math.ceil(inches/2.25 - 1e-9); }
+function giraText(gira){
+  var goj = Math.floor(gira/16), g = gira % 16, out = "";
+  if (goj>0) out += bn(goj) + " গজ";
+  if (g>0) out += (out?" ":"") + bn(g) + " গিরা";
+  if (!out) out = "০ গিরা";
+  return out;
+}
+function giraSub(gira){
+  return "মোট " + fmtNum(gira*2.25) + " ইঞ্চি · " + fmtNum(gira/16) + " গজ";
+}
+
+function compute(){
+  var g = garmentObj(), sz = g.sizes[state.size], W = widthObj();
+  var parts = [], gira = 0, note = "";
+  if (g.type==="wear"){
+    var inches = sz.base * mult(g) + state.adj*2;
+    gira = toGira(inches);
+  } else if (g.type==="three"){
+    var k = toGira(sz.k * mult(g,"kameez") + state.adj*2);
+    var s = toGira(sz.sl * mult(g,"salwar"));
+    var o = toGira(g.orna);
+    parts = [ ["কামিজ", k], ["সালোয়ার", s], ["ওড়না", o] ];
+    gira = k + s + o;
+  } else if (g.type==="curtain"){
+    var panels = Math.ceil((sz.w*1.5) / W.usable);   // 1.5x fullness for pleats
+    var per = sz.h + 10;                              // hem + header allowance
+    gira = toGira(panels * per);
+    note = "প্যানেল " + bn(panels) + "টি × প্রতি প্যানেল " + bn(per) + " ইঞ্চি (কুঁচির জন্য দেড় গুণ চওড়া ধরে)";
+  } else if (g.type==="sheet"){
+    var fw = sz.bw + 24, fl = sz.bl + 18;             // side drop + foot tuck/header
+    var p2 = Math.ceil(fw / W.usable);
+    gira = toGira(p2 * fl);
+    note = "চাদরের মাপ " + bn(fw) + " × " + bn(fl) + " ইঞ্চি · প্যানেল " + bn(p2) + "টি × " + bn(fl) + " ইঞ্চি";
+  }
+  return { gira:gira, parts:parts, note:note };
+}
+
+function render(){
+  var g = garmentObj();
+  // garment chips
+  var gh = "";
+  GARMENTS.forEach(function(x){
+    gh += '<button type="button" class="chip'+(x.id===state.g?" on":"")+'" data-g="'+x.id+'">'+x.name+
+          (x.sub?'<small>'+x.sub+'</small>':"")+'</button>';
+  });
+  document.getElementById("garments").innerHTML = gh;
+  // size chips
+  var sh = "";
+  g.sizes.forEach(function(x,i){
+    sh += '<button type="button" class="chip'+(i===state.size?" on":"")+'" data-s="'+i+'">'+x.t+
+          (x.s?'<small>'+x.s+'</small>':"")+'</button>';
+  });
+  document.getElementById("sizes").innerHTML = sh;
+  // width chips
+  var wh = "";
+  WIDTHS.forEach(function(x){
+    wh += '<button type="button" class="chip'+(x.id===state.w?" on":"")+'" data-w="'+x.id+'">'+x.label+
+          '<small>'+bn(x.inch)+' ইঞ্চি বহর</small></button>';
+  });
+  document.getElementById("widths").innerHTML = wh;
+  // adjustment card only for worn garments
+  document.getElementById("adjCard").style.display = (g.type==="curtain"||g.type==="sheet") ? "none" : "";
+  document.getElementById("adjVal").textContent =
+    state.adj===0 ? "স্বাভাবিক" : (state.adj>0 ? "+"+bn(state.adj)+" ইঞ্চি লম্বা" : "−"+bn(-state.adj)+" ইঞ্চি লম্বা");
+  // result
+  var r = compute();
+  var html = '<div class="cap">লাগবে</div><div class="big">'+giraText(r.gira)+'</div>'+
+             '<div class="sub">'+giraSub(r.gira)+'</div>';
+  if (r.parts.length){
+    html += '<div class="parts">';
+    r.parts.forEach(function(p){ html += "<div>"+p[0]+": <b>"+giraText(p[1])+"</b></div>"; });
+    html += "</div>";
+  }
+  if (r.note) html += '<div class="parts">'+r.note+'</div>';
+  var price = parseFloat(document.getElementById("price").value);
+  if (price && price>0){
+    html += '<div class="cost">মোট খরচ ≈ ৳'+bn(Math.round(price * r.gira/16))+'</div>';
+  }
+  document.getElementById("result").innerHTML = html;
+  // wire chips
+  Array.prototype.forEach.call(document.querySelectorAll("[data-g]"), function(b){
+    b.onclick = function(){ state.g=b.getAttribute("data-g"); state.size = garmentObj().sizes.length>1?1:0; state.adj=0; render(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-s]"), function(b){
+    b.onclick = function(){ state.size=+b.getAttribute("data-s"); render(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-w]"), function(b){
+    b.onclick = function(){ state.w=b.getAttribute("data-w"); render(); };
+  });
+}
+document.getElementById("adjMinus").onclick = function(){ if (state.adj>-4){ state.adj-=2; render(); } };
+document.getElementById("adjPlus").onclick  = function(){ if (state.adj< 8){ state.adj+=2; render(); } };
+document.getElementById("price").addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
